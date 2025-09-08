@@ -31,6 +31,8 @@
             </div>
         </section>
 
+
+
         {{-- Kart siyahı – 3 statik nümunə --}}
         <ul class="tx-cards">
             {{-- Balans artımı --}}
