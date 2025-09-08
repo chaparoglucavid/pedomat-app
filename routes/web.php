@@ -84,7 +84,7 @@ Route::middleware('auth')->group(function () {
     Route::get('user-suggestions', [UserSuggestionsController::class, 'index'])->name('user-suggestions');
 
     //ped reservations
-    Route::post('reserve-ped', [PedReservationsController::class, 'store'])->name('reserve-ped');
+    Route::post('reserve-ped', [PedReservationsController::class, 'store'])->name('user-reserve-ped');
 
 });
 

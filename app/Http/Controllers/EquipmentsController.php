@@ -27,7 +27,7 @@ class EquipmentsController extends Controller
         $equipment = Equipments::isActive()
             ->with([
                 'ped_categories' => function ($q) {
-                    $q->select('ped_categories.id','category_name')
+                    $q->select('ped_categories.id','category_name', 'unit_price')
                         ->withPivot(['qty_available']);
                 }
             ])
@@ -39,6 +39,7 @@ class EquipmentsController extends Controller
             return redirect()->back();
         }
         $equipment->qty_list = $equipment->equipment_ped_stock->pluck('qty_available');
+
         return view('equipments.equipment-details', compact('equipment'));
     }
 

@@ -852,6 +852,10 @@ body {
     transition: transform .08s ease, box-shadow .2s ease;
 }
 
+.qty-decrease, .qty-increase {
+    background: #efe9ff;
+}
+
 .qty-btn:disabled {
     opacity: .5;
     cursor: not-allowed

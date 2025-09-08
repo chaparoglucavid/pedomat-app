@@ -11,7 +11,7 @@ class PedCategories extends Model
     use HasFactory, SoftDeletes;
 
     protected $table = 'ped_categories';
-    protected $fillable = ['category_name','reason_for_use','status','unit_price']; // unit_price də əlavə et
+    protected $fillable = ['category_name','reason_for_use','status','unit_price'];
     protected $casts = ['unit_price' => 'decimal:2'];
 
     public function equipment_ped_stock()
