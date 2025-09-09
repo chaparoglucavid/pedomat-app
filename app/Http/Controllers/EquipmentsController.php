@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Equipments;
+use App\Models\Orders;
 use Native\Mobile\Dialog;
 
 class EquipmentsController extends Controller

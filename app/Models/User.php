@@ -78,9 +78,19 @@ class User extends Authenticatable
         return $query->where('active_status', 'deactive');
     }
 
+    public function getActiveOrdersCountAttribute()
+    {
+        return $this->orders()->where('barcode_status', 'not_used')->count();
+    }
+
     public function user_balance_history()
     {
         return $this->hasMany(UserBalanceHistory::class, 'user_id');
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Orders::class, 'user_id', 'id');
     }
 
 }

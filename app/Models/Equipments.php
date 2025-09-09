@@ -40,5 +40,9 @@ class Equipments extends Model
         )->withPivot(['qty_available'])->withTimestamps();
     }
 
+    public function orders()
+    {
+        return $this->hasMany(Orders::class, 'equipment_id', 'id');
+    }
 
 }

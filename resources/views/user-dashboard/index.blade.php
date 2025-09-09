@@ -52,17 +52,19 @@
                 </svg>
             </div>
 
-            <div class="quick-tiles__text">Mənim balansım</div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <div class="quick-tiles__text">Mənim balansım</div>
 
-            <div class="quick-tiles__amount">
-                <span class="azn">₼</span>{{ number_format(($userCurrentBalance ?? 0), 2, '.', ' ') }}
+                <div class="quick-tiles__amount">
+                    <span class="azn">₼</span>{{ number_format(($userCurrentBalance ?? 0), 2, '.', ' ') }}
+                </div>
             </div>
         </a>
     </div>
 
     {{-- Menyu siyahısı (kart daxilində elementlər) --}}
     <div class="card menu-list">
-        <a href="#" class="menu-list__item">
+        <a href="{{ route('user-orders') }}" class="menu-list__item">
             <div class="menu-list__left">
         <span class="menu-list__icon">
             <!-- 🎟️ Biletlər -->
@@ -70,8 +72,8 @@
                 <path d="M4 6h16v4a2 2 0 0 0 0 4v4H4v-4a2 2 0 0 0 0-4V6z" stroke="currentColor" fill="none"/>
             </svg>
         </span>
-                <span class="menu-list__text">Biletlərim
-            <span class="ms-4 chip chip--new">Aktiv: 1</span>
+                <span class="menu-list__text">Sifarişlərim
+            <span class="ms-4 chip chip--new">Aktiv: {{ $userActiveOrders }}</span>
         </span>
             </div>
             <span class="menu-list__chev">

@@ -16,7 +16,7 @@ use App\Http\Controllers\ForumController;
 use App\Http\Controllers\PedReservationsController;
 use App\Http\Controllers\UserDashboard\AccountController;
 use App\Http\Controllers\UserDashboard\UserBalanceController;
-use App\Http\Controllers\UserDashboard\UserTransactionsController;
+use App\Http\Controllers\UserDashboard\UserOrdersController;
 use App\Http\Controllers\UserDashboard\UserSuggestionsController;
 
 
@@ -77,14 +77,18 @@ Route::middleware('auth')->group(function () {
     Route::get('top-up-wallet-balance', [UserBalanceController::class, 'topUpWalletBalance'])->name('user-top-up-wallet-balance');
     Route::post('top-up-wallet-balance', [UserBalanceController::class, 'topUpWalletBalancePost'])->name('user-top-up-wallet-balance');
 
-    //transactions
-    Route::get('user-transactions', [UserTransactionsController::class, 'index'])->name('user-transactions');
+    //Orders
+    Route::get('user-orders', [UserOrdersController::class, 'index'])->name('user-orders');
 
     //suggestions
     Route::get('user-suggestions', [UserSuggestionsController::class, 'index'])->name('user-suggestions');
 
     //ped reservations
     Route::post('reserve-ped', [PedReservationsController::class, 'store'])->name('user-reserve-ped');
+
+    //get order barcode
+    Route::get('/orders/{order}/barcode', [UserOrdersController::class, 'getBarcode'])
+        ->name('user-orders-barcode');
 
 });
 

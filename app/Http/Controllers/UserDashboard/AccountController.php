@@ -13,6 +13,7 @@ class AccountController extends Controller
     {
         $user = Auth::user();
         $userCurrentBalance = $user->user_current_balance;
-        return view('user-dashboard.index', compact('userCurrentBalance'));
+        $userActiveOrders = $user->active_orders_count;
+        return view('user-dashboard.index', compact('userCurrentBalance', 'userActiveOrders'));
     }
 }
