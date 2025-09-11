@@ -18,6 +18,8 @@ return new class extends Migration
             $table->integer('general_capacity')->default(0);
             $table->integer('battery_level')->default(100);
             $table->text('current_address');
+            $table->decimal('longitude', 10, 7)->nullable();
+            $table->decimal('latitude', 10, 7)->nullable();
             $table->enum('equipment_status', ['active', 'deactive', 'under_repair'])->default('active');
             $table->softDeletes();
             $table->timestamps();

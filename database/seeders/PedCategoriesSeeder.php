@@ -44,36 +44,6 @@ class PedCategoriesSeeder extends Seeder
                 'unit_price' => number_format(random_int(50, 100) / 100, 2, '.', ''),
                 'status' => 'active',
             ],
-            [
-                'category_name' => 'Üzvi pambıq',
-                'reason_for_use' => 'Həssas dəri üçün təbii və kimyəvi tərkibsiz seçim',
-                'unit_price' => number_format(random_int(50, 100) / 100, 2, '.', ''),
-                'status' => 'active',
-            ],
-            [
-                'category_name' => 'Doğuşdan sonrakı (postpartum)',
-                'reason_for_use' => 'Doğuşdan sonrakı güclü axıntılar üçün yüksək hopdurma qabiliyyəti',
-                'unit_price' => number_format(random_int(50, 100) / 100, 2, '.', ''),
-                'status' => 'active',
-            ],
-            [
-                'category_name' => 'Gənc qızlar üçün',
-                'reason_for_use' => 'Kiçik ölçü və rahatlıq – ilk menstruasiya dövrləri üçün',
-                'unit_price' => number_format(random_int(50, 100) / 100, 2, '.', ''),
-                'status' => 'active',
-            ],
-            [
-                'category_name' => 'Təkrar istifadə olunan parça ped',
-                'reason_for_use' => 'Ekoloji cəhətdən təmiz, yuyula bilən alternativ',
-                'unit_price' => number_format(random_int(50, 100) / 100, 2, '.', ''),
-                'status' => 'active',
-            ],
-            [
-                'category_name' => 'Ətirli pedlər',
-                'reason_for_use' => 'Menstruasiya zamanı qoxuya nəzarət üçün',
-                'unit_price' => number_format(random_int(50, 100) / 100, 2, '.', ''),
-                'status' => 'inactive',
-            ],
         ];
 
         DB::table('ped_categories')->insert($pedCategories);

@@ -5,12 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\Equipments;
 use App\Models\Orders;
 use Native\Mobile\Dialog;
+use Native\Mobile\Geolocation;
+use Native\Mobile\Haptics;
 
 class EquipmentsController extends Controller
 {
 
     public function index()
     {
+
+        $geoLocation = new Geolocation();
+        $currentPosition = $geoLocation->getCurrentPosition();
+
+
+        $vibrate = new Haptics();
+        $vibrate->vibrate();
         $equipments = Equipments::isActive()
             ->with(['equipment_ped_stock:id,equipment_id,qty_available'])
             ->orderBy('equipment_number')

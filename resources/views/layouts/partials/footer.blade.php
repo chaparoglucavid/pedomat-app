@@ -34,7 +34,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round"
                               d="M20.25 6.75A2.25 2.25 0 0 0 18 4.5h-4.5v13.5H18a2.25 2.25 0 0 1 2.25 2.25v-13.5Z"/>
                     </svg>
-                    <span>İstifadə qaydası</span>
+                    <span>Period</span>
                 </a>
             </li>
 

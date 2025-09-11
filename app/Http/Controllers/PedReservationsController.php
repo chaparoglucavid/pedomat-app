@@ -196,7 +196,7 @@ class PedReservationsController extends Controller
 
                 $orderCode   = 'ORD-' . now()->format('Ymd-His');
                 $dns         = new DNS1D();
-                $barcodeHtml = $dns->getBarcodeSVG($orderCode, 'C128');
+                $barcodeHtml = $dns->getBarcodePNG($orderCode, 'C128', 2, 2, 'blue', 'false');
 
                 $order = Orders::create([
                     'user_id'          => $user->id,

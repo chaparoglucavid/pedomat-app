@@ -6,7 +6,6 @@
             <p class="page__sub">Cihazlardan çıxardığın PED və ödənişlər</p>
         </header>
 
-        {{-- Kart-larla səliqəli siyahı (3 statik item) --}}
         <ul class="tx-cards">
             @forelse($orders as $order)
                 <li class="tx-card">
@@ -70,78 +69,151 @@
 @endsection
 @section('js-code')
     <script>
-        const overlay = document.getElementById('barcode-modal');
-        const panel   = document.getElementById('barcode-panel');
-        const canvas  = document.getElementById('barcode-canvas');
+        (function () {
+            const overlay = document.getElementById('barcode-modal');
+            const panel   = document.getElementById('barcode-panel');
+            const canvas  = document.getElementById('barcode-canvas');
 
-        function scaleBarcode(container){
-            const raw  = container.querySelector('.barcode-raw') || container.firstElementChild;
-            if(!raw) return;
-            const naturalW = parseInt(raw?.style?.width)  || raw.offsetWidth  || 400;
-            const naturalH = parseInt(raw?.style?.height) || raw.offsetHeight || 30;
-            const k = container.clientWidth / Math.max(1, naturalW);
-            raw.style.transform = 'scale('+ k +')';
-            raw.style.transformOrigin = 'top left';
-            container.style.height = (naturalH * k + 20) + 'px';
-        }
-
-        async function tryLandscapeFullscreen(el){
-            const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-            if (req) { try { await req.call(el); } catch(e){} }
-            if (screen.orientation && screen.orientation.lock) {
-                try { await screen.orientation.lock('landscape'); return true; } catch(e){}
+            if (!overlay || !panel || !canvas) {
+                console.warn('[barcode] Modal elementləri tapılmadı.');
+                return;
             }
-            return false;
-        }
-        async function exitFullscreenAndUnlock(){
-            if (screen.orientation && screen.orientation.unlock) {
-                try { screen.orientation.unlock(); } catch(e){}
-            }
-            const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
-            if (document.fullscreenElement || document.webkitFullscreenElement) {
-                try { await exit.call(document); } catch(e){}
-            }
-        }
 
-        window.openBarcodeModal = function(orderId){
-            overlay.classList.add('is-open');
-            overlay.setAttribute('aria-hidden','false');
-            panel.classList.add('landscape');
-            document.documentElement.style.overflow = 'hidden';
+            function debounce(fn, wait) {
+                let t;
+                return function(...args){
+                    clearTimeout(t);
+                    t = setTimeout(() => fn.apply(this, args), wait);
+                };
+            }
 
-            tryLandscapeFullscreen(panel).then(locked => {
-                if (locked) panel.classList.remove('landscape');
-                requestAnimationFrame(()=> scaleBarcode(canvas));
-                setTimeout(()=> scaleBarcode(canvas), 120);
+            function getNaturalSize(el){
+                const vb = el.viewBox && el.viewBox.baseVal;
+                if (vb && vb.width && vb.height) {
+                    return { w: vb.width, h: vb.height };
+                }
+                const aw = parseFloat(el.getAttribute && el.getAttribute('width'));
+                const ah = parseFloat(el.getAttribute && el.getAttribute('height'));
+                if (!isNaN(aw) && !isNaN(ah) && aw > 0 && ah > 0) {
+                    return { w: aw, h: ah };
+                }
+                if (el.naturalWidth && el.naturalHeight) {
+                    return { w: el.naturalWidth, h: el.naturalHeight };
+                }
+                const rw = el.offsetWidth  || 400;
+                const rh = el.offsetHeight || 120;
+                return { w: rw, h: rh };
+            }
+
+            /* ---------- Barkodu konteynerə mərkəzdən sığdır ---------- */
+            function scaleBarcode(container){
+                const raw = container.querySelector('.barcode-raw') || container.querySelector('svg, img');
+                if(!raw) return;
+
+                const maxW = Math.max(1, container.clientWidth  - 24);
+                const maxH = Math.max(1, container.clientHeight - 24);
+
+                const { w:nW, h:nH } = getNaturalSize(raw);
+                const k = Math.min(maxW / nW, maxH / nH);
+
+                raw.style.transform = 'scale(' + k + ')';
+                raw.style.transformOrigin = 'center center';
+            }
+
+            const scaleNow = () => scaleBarcode(canvas);
+            const scaleNowDebounced = debounce(scaleNow, 80);
+
+            async function tryLandscapeFullscreen(el){
+                const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+                if (req) {
+                    try { await req.call(el); } catch(e){}
+                }
+                if (screen.orientation && screen.orientation.lock) {
+                    try { await screen.orientation.lock('landscape'); return true; } catch(e){}
+                }
+                return false;
+            }
+
+            async function exitFullscreenAndUnlock(){
+                if (screen.orientation && screen.orientation.unlock) {
+                    try { screen.orientation.unlock(); } catch(e){}
+                }
+                const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+                if (document.fullscreenElement || document.webkitFullscreenElement) {
+                    try { await exit.call(document); } catch(e){}
+                }
+            }
+
+            window.openBarcodeModal = function(orderId){
+                overlay.classList.add('is-open');
+                overlay.setAttribute('aria-hidden','false');
+                panel.classList.add('landscape');
+                document.documentElement.style.overflow = 'hidden';
+
+                tryLandscapeFullscreen(panel).then(locked => {
+                    if (locked) {
+                        panel.classList.remove('landscape');
+                    }
+                    requestAnimationFrame(scaleNow);
+                    setTimeout(scaleNow, 120);
+                });
+
+                fetch(`/orders/${orderId}/barcode`)
+                    .then(res => {
+                        if (!res.ok) throw new Error('HTTP ' + res.status);
+                        return res.json();
+                    })
+                    .then(data => {
+                        canvas.innerHTML = data.barcode || '';
+                        const raw = canvas.querySelector('svg, img');
+                        if (raw) raw.classList.add('barcode-raw');
+
+                        requestAnimationFrame(scaleNow);
+                        setTimeout(scaleNow, 60);
+                    })
+                    .catch(err => {
+                        console.error('Barkod yüklənmədi:', err);
+                        alert('Barkodu açmaq mümkün olmadı');
+                    });
+            };
+
+            window.closeBarcodeModal = async function(){
+                overlay.classList.remove('is-open');
+                overlay.setAttribute('aria-hidden','true');
+                panel.classList.remove('landscape');
+                canvas.innerHTML = '';
+                document.documentElement.style.overflow = '';
+
+                await exitFullscreenAndUnlock();
+            };
+
+            /* ---------- Eventlər ---------- */
+
+            document.addEventListener('click', (e)=>{
+                const btn = e.target.closest('.modal-close');
+                if(btn){
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeBarcodeModal();
+                }
             });
 
-            fetch(`/orders/${orderId}/barcode`)
-                .then(res => res.json())
-                .then(data => {
-                    canvas.innerHTML = data.barcode;
-                    requestAnimationFrame(()=> scaleBarcode(canvas));
-                    setTimeout(()=> scaleBarcode(canvas), 60);
-                })
-                .catch(err => {
-                    console.error("Barkod yüklənmədi:", err);
-                    alert("Barkodu açmaq mümkün olmadı");
-                });
-        };
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) closeBarcodeModal();
+            });
 
-        window.closeBarcodeModal = async function(){
-            overlay.classList.remove('is-open');
-            overlay.setAttribute('aria-hidden','true');
-            panel.classList.remove('landscape');
-            canvas.innerHTML = '';
-            document.documentElement.style.overflow = '';
-            await exitFullscreenAndUnlock();
-        };
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeBarcodeModal();
+            });
 
-        overlay.addEventListener('click', e => { if (e.target === overlay) closeBarcodeModal(); });
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBarcodeModal(); });
+            ['resize','orientationchange','fullscreenchange','webkitfullscreenchange']
+                .forEach(ev => window.addEventListener(ev, () => requestAnimationFrame(scaleNowDebounced)));
 
-        ['resize','orientationchange','fullscreenchange','webkitfullscreenchange'].forEach(ev=>{
-            window.addEventListener(ev, ()=> requestAnimationFrame(()=> scaleBarcode(canvas)));
-        });
+            if (window.visualViewport) {
+                const onVV = () => requestAnimationFrame(scaleNowDebounced);
+                visualViewport.addEventListener('resize', onVV);
+                visualViewport.addEventListener('scroll', onVV);
+            }
+        })();
     </script>
 @endsection

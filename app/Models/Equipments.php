@@ -18,6 +18,8 @@ class Equipments extends Model
         'general_capacity',
         'battery_level',
         'current_address',
+        'longitude',
+        'latitude',
         'equipment_status'
     ];
 

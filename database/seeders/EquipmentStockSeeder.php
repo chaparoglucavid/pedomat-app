@@ -18,7 +18,7 @@ class EquipmentStockSeeder extends Seeder
                 EquipmentPedStock::create([
                     'equipment_id' => $i,
                     'ped_category_id' => $j,
-                    'qty_available' => rand(20, 50)
+                    'qty_available' => rand(5, 10)
                 ]);
             }
         }

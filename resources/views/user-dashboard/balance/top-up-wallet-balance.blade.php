@@ -4,27 +4,31 @@
         @csrf
 
         <div class="balance-page">
-            <!-- Mərkəzlənmiş input -->
-            <div class="balance-center">
-                <label for="amount" class="sr-only">Məbləğ</label>
-                <div class="balance-input-wrapper">
-                    <span class="balance-prefix">₼</span>
-                    <input
-                        id="amount"
-                        name="amount"
-                        type="text"
-                        class="balance-input"
-                        inputmode="decimal"
-                        autocomplete="off"
-                        aria-label="Top-up amount"
-                    >
-                </div>
-            </div>
+            <form id="topupForm" method="POST" action="{{ route('user-top-up-wallet-balance') }}">
+                @csrf
 
-                <button type="submit" id="topupBtn" class="btn btn--ok w-100" disabled>
+                <div class="balance-center">
+                    <label for="amount" class="sr-only">Məbləğ</label>
+                    <div class="balance-input-wrapper">
+                        <input
+                            id="amount"
+                            name="amount"
+                            type="text"
+                            class="balance-input"
+                            inputmode="decimal"
+                            autocomplete="off"
+                            aria-label="Top-up amount"
+                        >
+                        <span class="balance-prefix">₼</span>
+                    </div>
+                </div>
+
+                <button type="submit" id="topupBtn" class="btn btn--ok w-100 mt-4" disabled>
                     Balansı artırın
                 </button>
+            </form>
         </div>
+
     </form>
 @endsection
 
