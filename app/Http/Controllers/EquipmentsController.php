@@ -17,7 +17,6 @@ class EquipmentsController extends Controller
         $geoLocation = new Geolocation();
         $currentPosition = $geoLocation->getCurrentPosition();
 
-
         $vibrate = new Haptics();
         $vibrate->vibrate();
         $equipments = Equipments::isActive()
@@ -31,6 +30,7 @@ class EquipmentsController extends Controller
 
         return view('welcome', compact('equipments'));
     }
+
 
     public function equipmentDetails($equipment_id)
     {

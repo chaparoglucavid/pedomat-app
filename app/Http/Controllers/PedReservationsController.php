@@ -194,9 +194,9 @@ class PedReservationsController extends Controller
                 $user->user_current_balance = self::fromCents($newBalanceCents);
                 $user->save();
 
-                $orderCode   = 'ORD-' . now()->format('Ymd-His');
+                $orderCode   = 'ORD-' . now()->format('His');
                 $dns         = new DNS1D();
-                $barcodeHtml = $dns->getBarcodePNG($orderCode, 'C128', 2, 2, 'blue', 'false');
+                $barcodeHtml = $dns->getBarcodeHTML($orderCode, 'C128');
 
                 $order = Orders::create([
                     'user_id'          => $user->id,

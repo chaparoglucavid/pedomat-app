@@ -371,7 +371,8 @@ body::before {
 .address-icn__svg {
     width: 28px;
     height: 16px;
-    display: block
+    display: block;
+    color: #0d6efd;
 }
 
 .battery-icn__pct {
@@ -1515,87 +1516,67 @@ body::before {
     height: auto;
 }
 
+.barcode-modal{
+    position: fixed; inset: 0; display: none;
+    align-items: center; justify-content: center;
+    background: rgba(0,0,0,.55); z-index: 9999;
+    -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+}
+.barcode-modal.is-open{ display: flex; }
 
-.barcode-modal {
+.barcode-modal__panel{
+    position: relative; background:#fff; width:min(100vw, 920px); height:min(100vh, 560px);
+    display:flex; flex-direction:column; padding:16px; border-radius:16px;
+    box-shadow:0 10px 30px rgba(0,0,0,.25); outline: none;
+}
+
+.barcode-title{ margin:0 48px 8px 0; font-weight:700; font-size:16px; }
+
+.modal-close{
     position: fixed;
-    inset: 0;
-    z-index: 60;
-    display: none;
-    background: rgba(8, 12, 20, 0.6);
+    top: calc(env(safe-area-inset-top,0px) + 10px);
+    right: calc(env(safe-area-inset-right,0px) + 10px);
+    z-index: 10001;
+    width: 44px; height: 44px; border:0; border-radius: 14px; cursor:pointer;
+    background: rgba(242,243,245,.96); box-shadow: 0 1px 6px rgba(0,0,0,.12);
+    font-size: 18px; display:inline-flex; align-items:center; justify-content:center;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.barcode-modal.is-open {
-    display: grid;
-    place-items: center;
+.barcode-canvas{
+    flex:1; display:grid; place-items:center; overflow:hidden;
+    border:1px dashed #e5e7eb; border-radius:12px; background:#fff;
 }
 
-.barcode-modal__panel {
-    position: relative;
-    max-width: 960px;
-    width: min(96vw, 960px);
-    max-height: 92vh;
-    background: #fff;
-    border-radius: 16px;
-    overflow: auto;
-    padding: 16px;
-    box-shadow: 0 20px 80px rgba(0, 0, 0, .35);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.barcode-raw{ display:block; transform-origin:center; }
 
-}
-
-.modal-close {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 40px;
-    height: 40px;
-    display: grid;
-    place-items: center;
-    border-radius: 12px;
-    background: #f2f3f7;
-    border: 1px solid #e5e7ef;
-    cursor: pointer;
-    font-size: 20px;
-    line-height: 1;
-}
-
-.modal-close:hover {
-    background: #eceef5;
-}
-
-.barcode-modal__canvas {
-    display: grid;
-    place-items: center;
-    width: 100%;
-    height: min(92vh, 760px);
-    padding: 12px;
-    box-sizing: border-box;
-}
-
-.barcode-modal__canvas img,
-.barcode-modal__canvas svg {
-    display: block;
-}
-
-.barcode-modal__canvas .barcode-raw {
-    display: block;
-    transform-origin: center center;
-}
-
-@media (max-width: 768px) {
-    .barcode-modal__panel.landscape {
-        width: 100vh;
-        max-width: 100vh;
-        height: 100vw;
-        max-height: 100vw;
-        transform: rotate(90deg);
-        transform-origin: center center;
-        overflow: auto;
+@media (orientation: portrait){
+    .barcode-canvas > svg.barcode-raw,
+    .barcode-canvas > img.barcode-raw{
+        width: 94vw; max-width: 860px; max-height: 68vh; height: auto;
     }
 }
 
+@media (orientation: landscape){
+    .barcode-canvas > svg.barcode-raw,
+    .barcode-canvas > img.barcode-raw{
+        max-height: 85vh; height: auto; width: auto;
+        transform: scale(1.15); /* +15% böyütmə */
+    }
+
+    .barcode-modal__panel{
+        width: min(100vw, 1100px);
+        height: min(100vh, 640px);
+    }
+}
+
+.used_barcode {
+    background-color: indianred;
+}
+
+.unused_barcode {
+    background-color: #cafdca;
+}
 
 .logout-card {
     display: flex;

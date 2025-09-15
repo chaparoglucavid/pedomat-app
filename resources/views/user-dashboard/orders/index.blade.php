@@ -8,7 +8,7 @@
 
         <ul class="tx-cards">
             @forelse($orders as $order)
-                <li class="tx-card">
+                <li class="tx-card {{ $order->barcode_status ? 'unused_barcode' : 'used_barcode' }}">
                     <div class="tx-card__icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24">
                             <rect x="7" y="2" width="10" height="20" rx="2"></rect>
@@ -58,162 +58,74 @@
         </ul>
     </div>
 
-    <div id="barcode-modal" class="barcode-modal" aria-hidden="true" role="dialog" aria-modal="true"
-         aria-labelledby="barcode-title">
-        <div id="barcode-panel" class="barcode-modal__panel">
-            <button class="modal-close" type="button" aria-label="Bağla" onclick="closeBarcodeModal()">✕</button>
-            <h3 id="barcode-title" style="margin:0 0 8px; font-size:16px; font-weight:700;">Barkod</h3>
-            <div id="barcode-canvas"></div>
+    <div id="barcode-modal" class="barcode-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="barcode-title">
+        <div id="barcode-panel" class="barcode-modal__panel" tabindex="-1">
+            <button class="modal-close" type="button" aria-label="Bağla">✕</button>
+            <h3 id="barcode-title" class="barcode-title">Barkod</h3>
+            <div id="barcode-canvas" class="barcode-canvas" aria-live="polite"></div>
         </div>
     </div>
 @endsection
 @section('js-code')
     <script>
-        (function () {
+        (function(){
             const overlay = document.getElementById('barcode-modal');
             const panel   = document.getElementById('barcode-panel');
             const canvas  = document.getElementById('barcode-canvas');
+            const closeBtn= overlay?.querySelector('.modal-close');
 
-            if (!overlay || !panel || !canvas) {
+            if(!overlay || !panel || !canvas || !closeBtn){
                 console.warn('[barcode] Modal elementləri tapılmadı.');
                 return;
             }
 
-            function debounce(fn, wait) {
-                let t;
-                return function(...args){
-                    clearTimeout(t);
-                    t = setTimeout(() => fn.apply(this, args), wait);
-                };
+            function normalizeBarcode(el){
+                if(el instanceof SVGElement){
+                    el.removeAttribute('width');
+                    el.removeAttribute('height');
+                    el.style.width = 'auto';
+                    el.style.height = 'auto';
+                    el.style.maxWidth = 'none';
+                    el.style.maxHeight = 'none';
+                }
+                el.classList.add('barcode-raw');
             }
 
-            function getNaturalSize(el){
-                const vb = el.viewBox && el.viewBox.baseVal;
-                if (vb && vb.width && vb.height) {
-                    return { w: vb.width, h: vb.height };
-                }
-                const aw = parseFloat(el.getAttribute && el.getAttribute('width'));
-                const ah = parseFloat(el.getAttribute && el.getAttribute('height'));
-                if (!isNaN(aw) && !isNaN(ah) && aw > 0 && ah > 0) {
-                    return { w: aw, h: ah };
-                }
-                if (el.naturalWidth && el.naturalHeight) {
-                    return { w: el.naturalWidth, h: el.naturalHeight };
-                }
-                const rw = el.offsetWidth  || 400;
-                const rh = el.offsetHeight || 120;
-                return { w: rw, h: rh };
-            }
-
-            /* ---------- Barkodu konteynerə mərkəzdən sığdır ---------- */
-            function scaleBarcode(container){
-                const raw = container.querySelector('.barcode-raw') || container.querySelector('svg, img');
-                if(!raw) return;
-
-                const maxW = Math.max(1, container.clientWidth  - 24);
-                const maxH = Math.max(1, container.clientHeight - 24);
-
-                const { w:nW, h:nH } = getNaturalSize(raw);
-                const k = Math.min(maxW / nW, maxH / nH);
-
-                raw.style.transform = 'scale(' + k + ')';
-                raw.style.transformOrigin = 'center center';
-            }
-
-            const scaleNow = () => scaleBarcode(canvas);
-            const scaleNowDebounced = debounce(scaleNow, 80);
-
-            async function tryLandscapeFullscreen(el){
-                const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-                if (req) {
-                    try { await req.call(el); } catch(e){}
-                }
-                if (screen.orientation && screen.orientation.lock) {
-                    try { await screen.orientation.lock('landscape'); return true; } catch(e){}
-                }
-                return false;
-            }
-
-            async function exitFullscreenAndUnlock(){
-                if (screen.orientation && screen.orientation.unlock) {
-                    try { screen.orientation.unlock(); } catch(e){}
-                }
-                const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
-                if (document.fullscreenElement || document.webkitFullscreenElement) {
-                    try { await exit.call(document); } catch(e){}
-                }
-            }
-
-            window.openBarcodeModal = function(orderId){
+            async function openBarcodeModal(orderId){
                 overlay.classList.add('is-open');
                 overlay.setAttribute('aria-hidden','false');
-                panel.classList.add('landscape');
                 document.documentElement.style.overflow = 'hidden';
+                setTimeout(()=>panel.focus(), 0);
 
-                tryLandscapeFullscreen(panel).then(locked => {
-                    if (locked) {
-                        panel.classList.remove('landscape');
-                    }
-                    requestAnimationFrame(scaleNow);
-                    setTimeout(scaleNow, 120);
-                });
+                try{
+                    const res  = await fetch(`/orders/${orderId}/barcode`, {headers:{'X-Requested-With':'XMLHttpRequest'}});
+                    if(!res.ok) throw new Error('HTTP '+res.status);
+                    const data = await res.json();
 
-                fetch(`/orders/${orderId}/barcode`)
-                    .then(res => {
-                        if (!res.ok) throw new Error('HTTP ' + res.status);
-                        return res.json();
-                    })
-                    .then(data => {
-                        canvas.innerHTML = data.barcode || '';
-                        const raw = canvas.querySelector('svg, img');
-                        if (raw) raw.classList.add('barcode-raw');
+                    canvas.innerHTML = data.barcode || '';
+                    const raw = canvas.querySelector('svg, img');
+                    if(raw) normalizeBarcode(raw);
+                }catch(e){
+                    console.error(e);
+                    canvas.innerHTML = '<p style="color:#dc2626;margin:8px 0;">Barkodu açmaq mümkün olmadı.</p>';
+                }
+            }
 
-                        requestAnimationFrame(scaleNow);
-                        setTimeout(scaleNow, 60);
-                    })
-                    .catch(err => {
-                        console.error('Barkod yüklənmədi:', err);
-                        alert('Barkodu açmaq mümkün olmadı');
-                    });
-            };
-
-            window.closeBarcodeModal = async function(){
+            function closeBarcodeModal(){
                 overlay.classList.remove('is-open');
                 overlay.setAttribute('aria-hidden','true');
-                panel.classList.remove('landscape');
-                canvas.innerHTML = '';
                 document.documentElement.style.overflow = '';
-
-                await exitFullscreenAndUnlock();
-            };
-
-            /* ---------- Eventlər ---------- */
-
-            document.addEventListener('click', (e)=>{
-                const btn = e.target.closest('.modal-close');
-                if(btn){
-                    e.preventDefault();
-                    e.stopPropagation();
-                    closeBarcodeModal();
-                }
-            });
-
-            overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) closeBarcodeModal();
-            });
-
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') closeBarcodeModal();
-            });
-
-            ['resize','orientationchange','fullscreenchange','webkitfullscreenchange']
-                .forEach(ev => window.addEventListener(ev, () => requestAnimationFrame(scaleNowDebounced)));
-
-            if (window.visualViewport) {
-                const onVV = () => requestAnimationFrame(scaleNowDebounced);
-                visualViewport.addEventListener('resize', onVV);
-                visualViewport.addEventListener('scroll', onVV);
+                canvas.innerHTML = '';
             }
+
+            window.openBarcodeModal  = openBarcodeModal;
+            window.closeBarcodeModal = closeBarcodeModal;
+
+            closeBtn.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); closeBarcodeModal(); });
+            overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeBarcodeModal(); });
+            document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && overlay.classList.contains('is-open')) closeBarcodeModal(); });
+
         })();
     </script>
+
 @endsection
