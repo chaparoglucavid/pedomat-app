@@ -95,6 +95,7 @@ Route::middleware('auth')->group(function () {
 Route::get('/', [EquipmentsController::class, 'index'])->name('equipments');
 Route::get('/guide', [GuideController::class, 'index'])->name('guide');
 Route::get('/forum', [ForumController::class, 'index'])->name('forum');
+Route::get('/forum/show', [ForumController::class, 'show'])->name('forum-show');
 Route::get('equipment-details/{equipment_id}', [EquipmentsController::class, 'equipmentDetails'])->name('equipment-details');
 
 

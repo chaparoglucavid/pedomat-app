@@ -8,7 +8,11 @@ class ForumController extends Controller
 {
     public function index()
     {
+        return view('forums.index');
+    }
 
-        return view('forum');
+    public function show()
+    {
+        return view('forums.show');
     }
 }
